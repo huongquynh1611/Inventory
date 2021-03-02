@@ -20,16 +20,59 @@ from selenium.common.exceptions import ElementClickInterceptedException
 import sys
 from crawl_aliexpress import GetHomePage,GetProductList
 from selenium.webdriver import ActionChains
-
+import uuid
+import os,dictfier
 chrome_options = Options()  
-# chrome_options.add_argument("--headless") # hide popup 
+chrome_options.add_argument("--headless") # hide popup 
 chrome_options.add_argument("--window-size=1920,1080")
 chrome_options.add_argument('--ignore-certificate-errors')
 chrome_options.add_argument('--incognito')
 website = "https://best.aliexpress.com/?lan=en"
 import sys
 
-product_url = "https://vi.aliexpress.com/item/1005001580718099.html?spm=a2g0o.productlist.0.0.37c75e70EJMPtG&algo_pvid=86e296db-d7f9-41e0-995e-24feef766b74&algo_expid=86e296db-d7f9-41e0-995e-24feef766b74-22&btsid=0b0a555d16146483278244410e8133&ws_ab_test=searchweb0_0,searchweb201602_,searchweb201603_"
+product_url = "https://vi.aliexpress.com/item/32861415272.html?spm=a2g0o.productlist.0.0.6c0814e4lxevaf&algo_pvid=4407d434-bd9e-4e45-9bf8-50d4a4432a19&algo_expid=4407d434-bd9e-4e45-9bf8-50d4a4432a19-1&btsid=0bb0623016146781475093050e742b&ws_ab_test=searchweb0_0,searchweb201602_,searchweb201603_"
+class ProductDetail:
+    def __init__(self, proName, priceCurrent,priceOrigin,priceDiscount,coupon,shipping):
+        self.ProName = proName
+        self.PriceCurrent = priceCurrent
+        self.PriceOrigin = priceOrigin
+        self.PriceDiscount = priceDiscount
+        self.Coupon = coupon
+        self.Shipping = shipping
+class Store: 
+    def __init__(self,storeName, url,storePositive,storeFollowerNum,storeContact,storeTop):
+        self.StoreName = storeName
+        self.URL = url
+        self.StorePositive = storePositive
+        self.StoreFollowerNum = storeFollowerNum
+        self.StoreContact = storeContact
+        self.StoreTop = storeTop
+class SKU:
+    def __init__(self, skuName, skuValue):
+        self.SKUName = skuName
+        self.SKUValue = skuValue
+
+class Img:
+    def __init__(self, imgName, imgLink):
+        self.ImgName = imgName
+        self.ImgLink = imgLink
+
+
+class Specification:
+    def __init__(self, detailName, detailValue):
+        self.DetailName = detailName
+        self.DetailValue = detailValue
+
+class DataProductDetail:
+    def __init__(self, productDetails, stories,skus,imgs,specifications):
+        self.ProductDetails = productDetails
+        self.Stories = stories
+        self.SKUs = skus
+        self.Specifications = specifications
+        self.Imgs = imgs
+        # self.Specifications = specifications
+
+
 def GetProductDetail(product_url):     
     file_csv = open("output.csv", "w", newline='', encoding='utf-8-sig') #open write file
     header = ["Title","PriceCurrent","PriceOriginal","PriceDiscount","Coupon","Shipping","StoreName","StoreLink","StorePositive","StoreFollowerNum","StoreContact","StoreTop","SkuName"]
@@ -58,11 +101,9 @@ def GetProductDetail(product_url):
     driver.quit()
 
     i=_page.findAll("div",{"class":"glodetail-wrap"})[0]
-    
+    list_pro = []
     # tìm thông tin 
     title = i.findAll("div",{"class":"product-title"})[0].h1.text.strip()
-   
-    
     price_current = i.findAll("div",{"class":"product-price-current"})[0].span.text.strip()
     price_original = i.findAll("div",{"class":"product-price-original"})
     price_original = price_original[0].findAll("span",{"class":"product-price-value"}) if len(price_original)> 0 else '' 
@@ -71,44 +112,35 @@ def GetProductDetail(product_url):
     price_discount = price_discount[0].findAll("span",{"class":"product-price-mark"}) if len(price_discount) > 0 else ""
     price_discount = price_discount[0].text.strip() if len(price_discount) >0 else ""
     coupon = i.findAll("div",{"class":"coupon-mark-new"})
-    coupon = coupon[0].text.strip if len(coupon) > 0 else ""
-    detail = {}
-    Price ={}
-    Shipping={}
-    detail['Price'] = Price
-    
-    Price["Curent"] = price_current
-    Price["Original"] = price_original
-    Price["Discount"] = price_discount
-    Price["Coupon"] = coupon
-
+    coupon = coupon[0].text.strip() if len(coupon) > 0 else ""
     shipping = i.findAll("div",{"class":"product-shipping-price"})
     shipping = shipping[0].text.strip() if len(shipping) >0 else ("Please select the country you want to ship from")
-    detail["Shipping"] = Shipping
-    
-    Shipping["Shipping fee"] = shipping
+    productDetail=ProductDetail(title,price_current,price_original,price_discount,coupon,shipping)
+    list_pro.append(productDetail)
 
+    # thông tin store
+    list_store = []
     store = i.findAll("div",{"class":"shop-name"})
     store_name = store[0].text.strip() if len(store) > 0 else ""
     store_link = store[0].a["href"] if len(store) > 0 else ""
     store_positive = i.findAll("div",{"class":"positive-fdbk"})
     store_positive = store_positive[0].text if len(store_positive) > 0 else ""
-    store_folower_num = i.findAll("div",{"class":"follower-num"})
-    store_folower_num = store_folower_num[0].text.strip() if len(store_folower_num) > 0 else ""
+    store_follower_num = i.findAll("div",{"class":"follower-num"})
+    store_follower_num = store_follower_num[0].text.strip() if len(store_follower_num) > 0 else ""
     store_contact = i.findAll("div",{"class":"store-info-contact"})
     store_contact = store_contact[0].a["href"] if len(store_contact) > 0 else ""
     store_top = i.findAll("div",{"class":"top-seller-label"}) 
     store_top = store_top[0].text.strip() if len(store_top) > 0 else ""
-
-    
+    store = Store(store_name,store_link,store_positive,store_follower_num,store_contact,store_top)
+    list_store.append(store)
     # thông tin sku: hình dạng, kích thước, size,...
- 
-    sku = i.findAll("div",{"class":"sku-wrap"})[0].findAll('div',{"class":"sku-property"})
-    for j in sku:
+    sku_list =[]
+    sku_ = i.findAll("div",{"class":"sku-wrap"})[0].findAll('div',{"class":"sku-property"})
+    for j in sku_:
         sku_name = j.findAll("div",{"class":"sku-title"})[0].text.strip()
-
-        sku_value = j.findAll("li",{"class":"sku-property-item"})
-        for k in sku_value: 
+        sku_value = []
+        _sku_value = j.findAll("li",{"class":"sku-property-item"})
+        for k in _sku_value: 
             value = k.find('img')
             if value is not None:
                 value_name = value['alt']
@@ -116,20 +148,95 @@ def GetProductDetail(product_url):
             else:
                 value_name = k.text.strip()
                 value_url = ''
-       
+            list_value = {}
+            list_value["Name"] = value_name
+            list_value["Url"] = value_url
+            sku_value.append(list_value)
+        sku = SKU(sku_name,sku_value)
+        sku_list.append(sku)
     # thông số kĩ thuật 
-    name_detail = i.findAll("span",{"class":"property-title"})
-    for name in name_detail: 
-        detail_name = name.text.strip()
-    value_detail = i.findAll("span",{"class":"property-desc line-limit-length"})
-    for value in value_detail:
-        detail_value = value.text.strip()
-
-    # hình ảnh
+    list_detail = []
+    
+    detail = i.findAll("ul",{"class":"product-specs-list util-clearfix"})[0].findAll("li")
+    for q in detail: 
+        q=q.text.split(":")
+        detail_name = q[0]
+        detail_value = q[1]
+        detail = Specification(detail_name,detail_value)
+        list_detail.append(detail)
+    # # hình ảnh
+    list_img = []
     image = i.findAll("div",{"class":"images-view-item"})
     for index in image:
         img_link = index.img['src'].replace(".jpg_50x50","")
         img_name = index.img['alt']
-    print(detail)
+    # print(detail)
+        img = Img(img_name,img_link)
+        list_img.append(img)
+    data = DataProductDetail(list_pro,list_store,sku_list, list_img,list_detail)
+    query = [
+        {
+            "ProductDetails": [
+                [       
+                    "ProName",
+                    "PriceCurrent",
+                    "PriceOrigin",
+                    "PriceDiscount",
+                    "Coupon",
+                    "Shipping"
+                ]
+            ]
+        },
+        {
+            "Stories": [
+                [
+                    "StoreName",
+                    "URL",
+                    "StorePositive",
+                    "StoreFollowerNum",
+                    "StoreContact",
+                    "StoreTop"
+                ]
+            ]
+        },
+
+        {
+            "SKUs": [
+                [
+                    "SKUName",
+                    "SKUValue"
+                ]
+            ]
+        },
+                {
+            "Specifications": [
+                [
+                    "DetailName",
+                    "DetailValue"
+                ]
+            ]
+        },
+
+        {
+            "Imgs": [
+                [
+                    "ImgName",
+                    "ImgLink"
+                ]
+            ]
+        }
+    ]
+
+    std_info = dictfier.dictfy(data, query)
+
+    file_name = uuid.uuid4().hex + ".json"
+
+    completeName = os.path.join(os.getcwd(), file_name)
+
+    file = open(completeName, "w", encoding="utf8")
+    file.write(json.dumps(std_info))
+    file.close()
+
+    print(completeName)
 GetProductDetail(product_url)   
 
