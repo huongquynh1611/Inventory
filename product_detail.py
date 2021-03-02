@@ -32,8 +32,9 @@ import sys
 
 product_url = "https://vi.aliexpress.com/item/32861415272.html?spm=a2g0o.productlist.0.0.6c0814e4lxevaf&algo_pvid=4407d434-bd9e-4e45-9bf8-50d4a4432a19&algo_expid=4407d434-bd9e-4e45-9bf8-50d4a4432a19-1&btsid=0bb0623016146781475093050e742b&ws_ab_test=searchweb0_0,searchweb201602_,searchweb201603_"
 class ProductDetail:
-    def __init__(self, proName, priceCurrent,priceOrigin,priceDiscount,coupon,shipping):
+    def __init__(self, proName, rate,priceCurrent,priceOrigin,priceDiscount,coupon,shipping):
         self.ProName = proName
+        self.Rate = rate
         self.PriceCurrent = priceCurrent
         self.PriceOrigin = priceOrigin
         self.PriceDiscount = priceDiscount
@@ -74,10 +75,6 @@ class DataProductDetail:
 
 
 def GetProductDetail(product_url):     
-    file_csv = open("output.csv", "w", newline='', encoding='utf-8-sig') #open write file
-    header = ["Title","PriceCurrent","PriceOriginal","PriceDiscount","Coupon","Shipping","StoreName","StoreLink","StorePositive","StoreFollowerNum","StoreContact","StoreTop","SkuName"]
-    writer = csv.writer(file_csv)
-    writer.writerow(header) #write header for each file
     driver = webdriver.Chrome(executable_path = "C:\\Users\\tlhqu\\Downloads\\chromedriver_win32\\chromedriver.exe", chrome_options=chrome_options)   
     print(" >> ",product_url)
     driver.get(product_url)  
@@ -104,6 +101,8 @@ def GetProductDetail(product_url):
     list_pro = []
     # tìm thông tin 
     title = i.findAll("div",{"class":"product-title"})[0].h1.text.strip()
+    rate = i.findAll("span",{"class":"overview-rating-average"})
+    rate = rate[0].text if len(rate) > 0 else ""
     price_current = i.findAll("div",{"class":"product-price-current"})[0].span.text.strip()
     price_original = i.findAll("div",{"class":"product-price-original"})
     price_original = price_original[0].findAll("span",{"class":"product-price-value"}) if len(price_original)> 0 else '' 
@@ -115,7 +114,7 @@ def GetProductDetail(product_url):
     coupon = coupon[0].text.strip() if len(coupon) > 0 else ""
     shipping = i.findAll("div",{"class":"product-shipping-price"})
     shipping = shipping[0].text.strip() if len(shipping) >0 else ("Please select the country you want to ship from")
-    productDetail=ProductDetail(title,price_current,price_original,price_discount,coupon,shipping)
+    productDetail=ProductDetail(title,rate,price_current,price_original,price_discount,coupon,shipping)
     list_pro.append(productDetail)
 
     # thông tin store
@@ -179,6 +178,7 @@ def GetProductDetail(product_url):
             "ProductDetails": [
                 [       
                     "ProName",
+                    "Rate",
                     "PriceCurrent",
                     "PriceOrigin",
                     "PriceDiscount",
