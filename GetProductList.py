@@ -6,6 +6,8 @@ import requests
 import urllib.request
 import shutil
 import time
+import uuid
+import os
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.chrome.options import Options
@@ -15,7 +17,7 @@ from selenium.webdriver.common.by import By
 from selenium.common.exceptions import TimeoutException
 from selenium.common.exceptions import StaleElementReferenceException
 from selenium.common.exceptions import ElementClickInterceptedException
-
+import dictfier
 from selenium.webdriver import ActionChains
 ''' option install  '''
 chrome_options = Options()  
@@ -29,6 +31,26 @@ website = "https://best.aliexpress.com/?lan=en"
 import sys
 
 URL = []
+class Product:
+    def __init__(self, name,url, priceCurrent,priceOriginal, priceDiscount,shipping,rate,storeName,storeLink, imgLink):
+        self.Name = name
+        self.URL = url
+        self.PriceCurrent = priceCurrent
+        self.PriceOriginal = priceOriginal
+        self.PriceDiscount = priceDiscount
+        self.Shipping = shipping
+        self.Rate = rate
+        self.StoreName = storeName
+        self.StoreLink = storeLink
+        self.ImgLink = imgLink
+class SubCategory:
+    def __init__(self, name, url):
+        self.SubCateName = name
+        self.SubCateURL = url
+class DataProductList:
+    def __init__(self, products, subcategories):
+        self.Products = products
+        self.SubCategories = subcategories
 
 def GetHomePage(website):         
     driver = webdriver.Chrome(executable_path = "C:\\Users\\tlhqu\\Downloads\\chromedriver_win32\\chromedriver.exe", chrome_options=chrome_options)
@@ -41,8 +63,6 @@ def GetHomePage(website):
 
     _page = BeautifulSoup(driver.page_source, "html.parser")
     driver.quit()
-    
-
     categories_list=_page.findAll("dt",{"class":"cate-name"})
     print(len(categories_list))
     cate_name_url = []
@@ -62,7 +82,6 @@ def GetHomePage(website):
     print(dict_cate)
     return dict_cate
 def GetProductList(cate_url,max_num_pages):
-      # url cate 
     list_product = []   
     url = "https:" + cate_url   
     for ele in range(1,max_num_pages+1):              
@@ -93,7 +112,8 @@ def GetProductList(cate_url,max_num_pages):
             scate_name = i.a.text.strip()
             scate_url = i.a["href"]
             # print(scate)
-            scate_str = "{\"" + scate_name_field + "\":\"" + scate_name    + "\",\"" + scate_link_field + "\":\"" + scate_url +"\"}"
+            # scate_str = "{\"" + scate_name_field + "\":\"" + scate_name    + "\",\"" + scate_link_field + "\":\"" + scate_url +"\"}"
+            scate_str = SubCategory(scate_name,scate_url)
             scate_list.append(scate_str)
       
 
@@ -134,37 +154,75 @@ def GetProductList(cate_url,max_num_pages):
             product_img_link = i.findAll("div",{"class":"product-img"})[0].a.img["src"].replace(".jpg_220x220xz","")
             product_img_name = i.findAll("div",{"class":"product-img"})[0].a.img["alt"]
             
-            product_str = "{\"" + \
-            product_name_field              + "\":\"" + product_title           + "\",\"" + \
-            product_url_field               + "\":\"" + product_url             + "\",\"" + \
-            product_price_current_field     + "\":\"" + product_price_current   + "\",\"" + \
-            product_price_origin_field      + "\":\"" + product_price_origin    + "\",\"" + \
-            product_price_discount_field    + "\":\"" + product_price_discount  + "\",\"" + \
-            product_shipping_field          + "\":\"" + product_shipping        + "\",\"" + \
-            product_rate_field              + "\":\"" + product_rate            + "\",\"" + \
-            product_store_name_field        + "\":\"" + product_store           + "\",\"" + \
-            product_store_link_field        + "\":\"" + product_store_link      + "\",\"" + \
-            product_img_link_field          + "\":\"" + product_img_link        + "\",\"" + \
-            product_img_name_field          + "\":\"" + product_img_name        + "\"}"
+            # product_str = "{\"" + \
+            # product_name_field              + "\":\"" + product_title           + "\",\"" + \
+            # product_url_field               + "\":\"" + product_url             + "\",\"" + \
+            # product_price_current_field     + "\":\"" + product_price_current   + "\",\"" + \
+            # product_price_origin_field      + "\":\"" + product_price_origin    + "\",\"" + \
+            # product_price_discount_field    + "\":\"" + product_price_discount  + "\",\"" + \
+            # product_shipping_field          + "\":\"" + product_shipping        + "\",\"" + \
+            # product_rate_field              + "\":\"" + product_rate            + "\",\"" + \
+            # product_store_name_field        + "\":\"" + product_store           + "\",\"" + \
+            # product_store_link_field        + "\":\"" + product_store_link      + "\",\"" + \
+            # product_img_link_field          + "\":\"" + product_img_link        + "\",\"" + \
+            # product_img_name_field          + "\":\"" + product_img_name        + "\"}"
 
             # print(product_str)
+            product_str = Product(product_title,product_url,product_price_current,product_price_origin,product_price_discount,product_shipping,product_rate,product_store,product_store_link,product_img_link)
             list_product_str.append(product_str)
         
             # list_subcate_str = 
-        data_return = "{\"subcate\":[" + ",".join(scate_list) + "] ,\"data\":[" + ",".join(list_product_str) + "]}"
+        data = DataProductList(list_product_str,scate_list)
         # file = open("data.json", "w")
         # file.write(data_return)    
 
     # data = ", ".join(data.json)
  
-        return data_return
+        query = [
+            {
+                "Products": [
+                    [       
+                        "Name",
+                        "URL",
+                        "PriceCurrent",
+                        "PriceOriginal" ,
+                        "PriceDiscount",
+                        "Shipping",
+                        "Rate",
+                        "StoreName",
+                        "StoreLink",
+                        "ImgLink"
+                    ]
+                ]
+            },
+            {
+                "SubCategories": [
+                    [
+                        "SubCateName",
+                        "SubCateURL"
+                    ]
+                ]
+            }
+        ]
+
+        std_info = dictfier.dictfy(data, query)
+
+        file_name = uuid.uuid4().hex + ".json"
+
+        completeName = os.path.join(os.getcwd(), file_name)
+
+        file = open(completeName, "w", encoding="utf8")
+        file.write(json.dumps(std_info))
+        file.close()
+
+        print(completeName)
 
 
-# cate = "home-improvement"
+cate = "home-improvement"
 
-# dict_cate = GetHomePage(website)
-# cate_url = dict_cate[cate]  
-# GetProductList(cate_url,max_num_pages=1)               
+dict_cate = GetHomePage(website)
+cate_url = dict_cate[cate]  
+GetProductList(cate_url,max_num_pages=1)               
            
 
 
