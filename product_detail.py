@@ -22,7 +22,7 @@ from crawl_aliexpress import GetHomePage,GetProductList
 from selenium.webdriver import ActionChains
 
 chrome_options = Options()  
-chrome_options.add_argument("--headless") # hide popup 
+# chrome_options.add_argument("--headless") # hide popup 
 chrome_options.add_argument("--window-size=1920,1080")
 chrome_options.add_argument('--ignore-certificate-errors')
 chrome_options.add_argument('--incognito')
@@ -31,10 +31,13 @@ import sys
 
 product_url = "https://vi.aliexpress.com/item/1005001580718099.html?spm=a2g0o.productlist.0.0.37c75e70EJMPtG&algo_pvid=86e296db-d7f9-41e0-995e-24feef766b74&algo_expid=86e296db-d7f9-41e0-995e-24feef766b74-22&btsid=0b0a555d16146483278244410e8133&ws_ab_test=searchweb0_0,searchweb201602_,searchweb201603_"
 def GetProductDetail(product_url):     
+    file_csv = open("output.csv", "w", newline='', encoding='utf-8-sig') #open write file
+    header = ["Title","PriceCurrent","PriceOriginal","PriceDiscount","Coupon","Shipping","StoreName","StoreLink","StorePositive","StoreFollowerNum","StoreContact","StoreTop","SkuName"]
+    writer = csv.writer(file_csv)
+    writer.writerow(header) #write header for each file
     driver = webdriver.Chrome(executable_path = "C:\\Users\\tlhqu\\Downloads\\chromedriver_win32\\chromedriver.exe", chrome_options=chrome_options)   
     print(" >> ",product_url)
-    driver.get(product_url)
-    
+    driver.get(product_url)  
     try:
         WebDriverWait(driver, 1).until(EC.presence_of_element_located((By.ID , 'root')))
         print("Page is ready!")
@@ -48,20 +51,18 @@ def GetProductDetail(product_url):
         driver.execute_script("window.scrollBy(0, 1080)")
         if scrolls < 0:
             break
-    p1=None
-    p1 = driver.find_elements_by_xpath('//*[@id="product-detail"]/div[2]/div/div[1]/ul/li[3]')[0]
-    try:
-        p1.click()
-        time.sleep(3)
-    except ElementClickInterceptedException:
+    script = "document.querySelector(\"#product-detail > div.product-detail-tab > div > div.detail-tab-bar > ul > li:nth-child(3)\").click()"
+    driver.execute_script(script)
 
-        print("Click failed, error InterceptedException")
-    # Lấy html từ page source 
     _page = BeautifulSoup(driver.page_source, "html.parser")
     driver.quit()
+
     i=_page.findAll("div",{"class":"glodetail-wrap"})[0]
     
+    # tìm thông tin 
     title = i.findAll("div",{"class":"product-title"})[0].h1.text.strip()
+   
+    
     price_current = i.findAll("div",{"class":"product-price-current"})[0].span.text.strip()
     price_original = i.findAll("div",{"class":"product-price-original"})
     price_original = price_original[0].findAll("span",{"class":"product-price-value"}) if len(price_original)> 0 else '' 
@@ -71,29 +72,22 @@ def GetProductDetail(product_url):
     price_discount = price_discount[0].text.strip() if len(price_discount) >0 else ""
     coupon = i.findAll("div",{"class":"coupon-mark-new"})
     coupon = coupon[0].text.strip if len(coupon) > 0 else ""
-    sku = i.findAll("div",{"class":"sku-wrap"})[0].findAll('div',{"class":"sku-property"})
-    for j in sku:
-        sku_name = j.findAll("div",{"class":"sku-title"})[0].text.strip()
-        print(sku_name)
-        sku_value = j.findAll("li",{"class":"sku-property-item"})
-        for k in sku_value: 
-            # print(k)
-            value = k.find('img')
-            # print(value)
-            if value is not None:
-                value_name = value['alt']
-                print(value_name)
-                value_url = value['src'].replace(".jpg_50x50","")
-                print(value_url)
-            else:
-                value_name = k.text.strip()
-                value_url = ''
-                print(value_name)
-                print(value_url)
-            
+    detail = {}
+    Price ={}
+    Shipping={}
+    detail['Price'] = Price
+    
+    Price["Curent"] = price_current
+    Price["Original"] = price_original
+    Price["Discount"] = price_discount
+    Price["Coupon"] = coupon
+
     shipping = i.findAll("div",{"class":"product-shipping-price"})
     shipping = shipping[0].text.strip() if len(shipping) >0 else ("Please select the country you want to ship from")
-    print(shipping)
+    detail["Shipping"] = Shipping
+    
+    Shipping["Shipping fee"] = shipping
+
     store = i.findAll("div",{"class":"shop-name"})
     store_name = store[0].text.strip() if len(store) > 0 else ""
     store_link = store[0].a["href"] if len(store) > 0 else ""
@@ -105,9 +99,37 @@ def GetProductDetail(product_url):
     store_contact = store_contact[0].a["href"] if len(store_contact) > 0 else ""
     store_top = i.findAll("div",{"class":"top-seller-label"}) 
     store_top = store_top[0].text.strip() if len(store_top) > 0 else ""
-    detail = i.findAll("ul",{"class":"product-specs-list util-clearfix"})
+
+    
+    # thông tin sku: hình dạng, kích thước, size,...
+ 
+    sku = i.findAll("div",{"class":"sku-wrap"})[0].findAll('div',{"class":"sku-property"})
+    for j in sku:
+        sku_name = j.findAll("div",{"class":"sku-title"})[0].text.strip()
+
+        sku_value = j.findAll("li",{"class":"sku-property-item"})
+        for k in sku_value: 
+            value = k.find('img')
+            if value is not None:
+                value_name = value['alt']
+                value_url = value['src'].replace(".jpg_50x50","") 
+            else:
+                value_name = k.text.strip()
+                value_url = ''
+       
+    # thông số kĩ thuật 
+    name_detail = i.findAll("span",{"class":"property-title"})
+    for name in name_detail: 
+        detail_name = name.text.strip()
+    value_detail = i.findAll("span",{"class":"property-desc line-limit-length"})
+    for value in value_detail:
+        detail_value = value.text.strip()
+
+    # hình ảnh
+    image = i.findAll("div",{"class":"images-view-item"})
+    for index in image:
+        img_link = index.img['src'].replace(".jpg_50x50","")
+        img_name = index.img['alt']
     print(detail)
-    print(store_contact)
-    print(store_top )
-    print(store_folower_num)
-GetProductDetail(product_url)
+GetProductDetail(product_url)   
+
