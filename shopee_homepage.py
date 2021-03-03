@@ -14,6 +14,7 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
+from selenium.common.exceptions import ElementClickInterceptedException
 from selenium.common.exceptions import TimeoutException
 import json
 import dictfier
@@ -42,9 +43,11 @@ def GetHomePageShoppee():
         driver.execute_script("window.scrollBy(0, 1080)")
         if scrolls < 0:
             break
-    _page = BeautifulSoup(driver.page_source, "html.parser")
-    driver.quit()
 
+
+    _page = BeautifulSoup(driver.page_source, "html.parser")
+    
+    driver.quit()
     product_link_field = "URL"
     product_name_field = "Name"
     product_price_field = "Price"
@@ -66,10 +69,11 @@ def GetHomePageShoppee():
 
 
     class Category:
-        def __init__(self, name, cateId,url):
+        def __init__(self, name, cateId,url,cateImg):
             self.CateName = name
             self.CateId = cateId
             self.URL = url
+            self.CateImg = cateImg
 
     class DataHomePage:
         def __init__(self, products, categories):
@@ -83,6 +87,7 @@ def GetHomePageShoppee():
         product_link = "https://shopee.vn" +i.a['href'] 
         product_name = i.findAll("div",{"class":"_1NoI8_ _1co5xN"})[0].text
         product_img_link = i.findAll("div",{"class":"_39-Tsj _1tDEiO"})[0].img['src']
+        # print(product_img_link)
         product_price = i.findAll("span",{"class":"djJP_7"})
         product_price = product_price[0].text if len(product_price) > 0 else ""
         product_like = i.findAll("span",{"class":"_1DeDTg"})
@@ -97,41 +102,44 @@ def GetHomePageShoppee():
         cate_url = "https://shopee.vn" + i["href"]
         cate_name = i.findAll("div",{"class":"_1NLLsA"})[0].text
         cate_id = cate_url.split(".")[-1]
-        cate = Category(cate_name,cate_id,cate_url)
+        cate_img = i.findAll("div",{"class":"_39-Tsj _3zGj9X"})[0]
+        cate = Category(cate_name,cate_id,cate_url,cate_img)
+        print(cate_img)
         list_cate.append(cate)
-    data = DataHomePage(list_product, list_cate)
-    query = [
-        {
-            "Products": [
-                [       
-                    "URL",
-                    "Name",
-                    "Price",
-                    "Like",
-                    "Percent",
-                    "ImgLink"
-                ]
-            ]
-        },
-        {
-            "Categories": [
-                [
-                    "CateName",
-                    "CateId",
-                    "URL"
-                ]
-            ]
-        }
-    ]
-    std_info = dictfier.dictfy(data, query)
+    # data = DataHomePage(list_product, list_cate)
+    # query = [
+    #     {
+    #         "Products": [
+    #             [       
+    #                 "URL",
+    #                 "Name",
+    #                 "Price",
+    #                 "Like",
+    #                 "Percent",
+    #                 "ImgLink"
+    #             ]
+    #         ]
+    #     },
+    #     {
+    #         "Categories": [
+    #             [
+    #                 "CateName",
+    #                 "CateId",
+    #                 "URL"
+    #                 "CateImg"
+    #             ]
+    #         ]
+    #     }
+    # ]
+    # std_info = dictfier.dictfy(data, query)
 
-    file_name = uuid.uuid4().hex + ".json"
+    # file_name = uuid.uuid4().hex + ".json"
 
-    completeName = os.path.join(os.getcwd(), file_name)
+    # completeName = os.path.join(os.getcwd(), file_name)
 
-    file = open(completeName, "w", encoding="utf8")
-    file.write(json.dumps(std_info))
-    file.close()
+    # file = open(completeName, "w", encoding="utf8")
+    # file.write(json.dumps(std_info))
+    # file.close()
 
-    print(completeName)
+    # print(completeName)
 GetHomePageShoppee()

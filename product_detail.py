@@ -30,7 +30,7 @@ chrome_options.add_argument('--incognito')
 website = "https://best.aliexpress.com/?lan=en"
 import sys
 
-product_url = "https://vi.aliexpress.com/item/32861415272.html?spm=a2g0o.productlist.0.0.6c0814e4lxevaf&algo_pvid=4407d434-bd9e-4e45-9bf8-50d4a4432a19&algo_expid=4407d434-bd9e-4e45-9bf8-50d4a4432a19-1&btsid=0bb0623016146781475093050e742b&ws_ab_test=searchweb0_0,searchweb201602_,searchweb201603_"
+product_url = "https://vi.aliexpress.com/item/1005002223429433.html?spm=a2g0o.productlist.0.0.140e7370bBw0bq&algo_pvid=f55b4ac0-6295-4b9d-a9c5-21bc4b1d1c8f&algo_expid=f55b4ac0-6295-4b9d-a9c5-21bc4b1d1c8f-6&btsid=0bb0624216147556764928774e7c7d&ws_ab_test=searchweb0_0,searchweb201602_,searchweb201603_"
 class ProductDetail:
     def __init__(self, proName, rate,priceCurrent,priceOrigin,priceDiscount,coupon,shipping):
         self.ProName = proName
@@ -69,9 +69,8 @@ class DataProductDetail:
         self.ProductDetails = productDetails
         self.Stories = stories
         self.SKUs = skus
-        self.Specifications = specifications
         self.Imgs = imgs
-        # self.Specifications = specifications
+        self.Specifications = specifications
 
 
 def GetProductDetail(product_url):     
@@ -91,6 +90,7 @@ def GetProductDetail(product_url):
         driver.execute_script("window.scrollBy(0, 1080)")
         if scrolls < 0:
             break
+        
     script = "document.querySelector(\"#product-detail > div.product-detail-tab > div > div.detail-tab-bar > ul > li:nth-child(3)\").click()"
     driver.execute_script(script)
 

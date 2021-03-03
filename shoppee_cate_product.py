@@ -32,7 +32,7 @@ import sys
 
 URL = []
 class Product:
-    def __init__(self, name,url, priceCurrent,priceOriginal, priceDiscount,priceText1,priceText2,priceText3,priceText4,priceText5,location,shipping, imgLink):
+    def __init__(self, name,url, priceCurrent,priceOriginal, priceDiscount,priceText1,priceText2,priceText3,priceText4,priceText5,location,shipping, imgLink,productLike):
         self.Name = name
         self.URL = url
         self.PriceCurrent = priceCurrent
@@ -46,6 +46,7 @@ class Product:
         self.Location = location
         self.Shipping = shipping
         self.ImgLink = imgLink
+        self.ProductLike = productLike
 class SubCategory:
     def __init__(self, name, url):
         self.SubCateName = name
@@ -54,11 +55,11 @@ class DataProductList:
     def __init__(self, products, subcategories):
         self.Products = products
         self.SubCategories = subcategories
-cate_url = "https://shopee.vn/M%C3%A1y-t%C3%ADnh-Laptop-cat.13030?page="
+cate_url = "https://shopee.vn/S%E1%BB%A9c-Kh%E1%BB%8Fe-S%E1%BA%AFc-%C4%90%E1%BA%B9p-cat.160?page="
 def GetProductList(cate_url,max_num_pages):
     list_product = []   
     url = cate_url   
-    for ele in range(1,max_num_pages+1):              
+    for ele in range(0,max_num_pages+1):              
         driver = webdriver.Chrome(executable_path = "C:\\Users\\tlhqu\\Downloads\\chromedriver_win32\\chromedriver.exe", chrome_options=chrome_options)   
         print(" >> ",url + str(ele) )
         driver.get(url + str(ele))
@@ -114,11 +115,14 @@ def GetProductList(cate_url,max_num_pages):
             # thông tn tỉnh/thành phố
             product_location = j.findAll("div",{"class":"_41f1_p"})
             product_location = product_location[0].text if len(product_location) > 0 else ""
+            # Yêu thích 
+            product_like = j.findAll("span",{"class":"_1DeDTg"})
+            product_like = product_like[0].text if len(product_like) > 0 else ""
             # thông tin có áp dung freehship
             product_icon_freeship = j.findAll("div",{"class":"_3c2vFv"})
             product_icon_freeship = "Yes" if len(product_icon_freeship) > 0 else "No"
             product_img_link = j.findAll("div",{"class":"_39-Tsj _1tDEiO"})[0].img['src']
-            product = Product(product_name,product_url,product_price_current,product_price_origin,product_price_discount,product_price_text_1,product_price_text_2,product_price_text_3,product_price_text_4,product_price_text_5,product_location,product_icon_freeship,product_img_link)
+            product = Product(product_name,product_url,product_price_current,product_price_origin,product_price_discount,product_price_text_1,product_price_text_2,product_price_text_3,product_price_text_4,product_price_text_5,product_location,product_icon_freeship,product_img_link,product_like)
             product_list.append(product)
         data = DataProductList(product_list,subcate_list)
         query = [
@@ -137,7 +141,8 @@ def GetProductList(cate_url,max_num_pages):
                         "PriceText5",
                         "Location",
                         "Shipping",
-                        "ImgLink"
+                        "ImgLink",
+                        "ProductLike"
                     ]
                 ]
             },
