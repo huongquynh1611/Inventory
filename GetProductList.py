@@ -111,26 +111,11 @@ def GetProductList(cate_url,max_num_pages):
         for i in sub: 
             scate_name = i.a.text.strip()
             scate_url = i.a["href"]
-            # print(scate)
-            # scate_str = "{\"" + scate_name_field + "\":\"" + scate_name    + "\",\"" + scate_link_field + "\":\"" + scate_url +"\"}"
             scate_str = SubCategory(scate_name,scate_url)
             scate_list.append(scate_str)
-      
-
 
         post=_page.findAll("li",{"class":"list-item"})
-        subcate_field = "Subcate"
-        product_name_field = "ProName"
-        product_url_field = "ProURL"
-        product_price_current_field = "ProPriceCur"
-        product_price_origin_field = "ProPriceOri"
-        product_price_discount_field = "ProPriceDiscount"
-        product_shipping_field = "ProShipping"
-        product_rate_field = "ProRate"
-        product_store_name_field = "ProStoreName"
-        product_store_link_field = "ProStoreURL"
-        product_img_link_field = "ProImgURL"
-        product_img_name_field = "ProImgName"
+    
         list_product_str = []
        
         for i in post:
@@ -154,29 +139,12 @@ def GetProductList(cate_url,max_num_pages):
             product_img_link = i.findAll("div",{"class":"product-img"})[0].a.img["src"].replace(".jpg_220x220xz","")
             product_img_name = i.findAll("div",{"class":"product-img"})[0].a.img["alt"]
             
-            # product_str = "{\"" + \
-            # product_name_field              + "\":\"" + product_title           + "\",\"" + \
-            # product_url_field               + "\":\"" + product_url             + "\",\"" + \
-            # product_price_current_field     + "\":\"" + product_price_current   + "\",\"" + \
-            # product_price_origin_field      + "\":\"" + product_price_origin    + "\",\"" + \
-            # product_price_discount_field    + "\":\"" + product_price_discount  + "\",\"" + \
-            # product_shipping_field          + "\":\"" + product_shipping        + "\",\"" + \
-            # product_rate_field              + "\":\"" + product_rate            + "\",\"" + \
-            # product_store_name_field        + "\":\"" + product_store           + "\",\"" + \
-            # product_store_link_field        + "\":\"" + product_store_link      + "\",\"" + \
-            # product_img_link_field          + "\":\"" + product_img_link        + "\",\"" + \
-            # product_img_name_field          + "\":\"" + product_img_name        + "\"}"
-
-            # print(product_str)
             product_str = Product(product_title,product_url,product_price_current,product_price_origin,product_price_discount,product_shipping,product_rate,product_store,product_store_link,product_img_link)
             list_product_str.append(product_str)
         
-            # list_subcate_str = 
+           
         data = DataProductList(list_product_str,scate_list)
-        # file = open("data.json", "w")
-        # file.write(data_return)    
 
-    # data = ", ".join(data.json)
  
         query = [
             {
@@ -222,7 +190,7 @@ cate = "home-improvement"
 
 dict_cate = GetHomePage(website)
 cate_url = dict_cate[cate]  
-GetProductList(cate_url,max_num_pages=1)               
+GetProductList(cate_url,max_num_pages=2)               
            
 
 
