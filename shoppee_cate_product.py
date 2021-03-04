@@ -48,14 +48,15 @@ class Product:
         self.ImgLink = imgLink
         self.ProductLike = productLike
 class SubCategory:
-    def __init__(self, name, url):
+    def __init__(self, name, url,id):
         self.SubCateName = name
         self.SubCateURL = url
+        self.SubCateID = id
 class DataProductList:
     def __init__(self, products, subcategories):
         self.Products = products
         self.SubCategories = subcategories
-cate_url = "https://shopee.vn/S%E1%BB%A9c-Kh%E1%BB%8Fe-S%E1%BA%AFc-%C4%90%E1%BA%B9p-cat.160?page="
+cate_url = "https://shopee.vn/T%E1%BA%AFm-Ch%C4%83m-s%C3%B3c-c%C6%A1-th%E1%BB%83-cat.160.2818?page="
 def GetProductList(cate_url,max_num_pages):
     list_product = []   
     url = cate_url   
@@ -85,7 +86,8 @@ def GetProductList(cate_url,max_num_pages):
         for i in sub: 
             subcate_name = i.text
             subcate_link = "https://shopee.vn" + i['href']
-            subcate = SubCategory(subcate_name,subcate_link)
+            subcate_id = subcate_link.split(".")[-1]
+            subcate = SubCategory(subcate_name,subcate_link,subcate_id)
             subcate_list.append(subcate)
 
         product_list = []
@@ -150,7 +152,8 @@ def GetProductList(cate_url,max_num_pages):
                 "SubCategories": [
                     [
                         "SubCateName",
-                        "SubCateURL"
+                        "SubCateURL",
+                        "SubCateID"
                     ]
                 ]
             }
