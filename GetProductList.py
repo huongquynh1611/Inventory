@@ -44,9 +44,10 @@ class Product:
         self.StoreLink = storeLink
         self.ImgLink = imgLink
 class SubCategory:
-    def __init__(self, name, url):
+    def __init__(self, name, url,id):
         self.SubCateName = name
         self.SubCateURL = url
+        self.SubCateID = id
 class DataProductList:
     def __init__(self, products, subcategories):
         self.Products = products
@@ -109,9 +110,11 @@ def GetProductList(cate_url,max_num_pages):
         scate_link_field = "Subcate_link"
         sub = _page.findAll("ul",{"class":"child-menu"})[0].findAll("li")
         for i in sub: 
+            scate_id = i['ae_object_value']
+            print(scate_id)
             scate_name = i.a.text.strip()
             scate_url = i.a["href"]
-            scate_str = SubCategory(scate_name,scate_url)
+            scate_str = SubCategory(scate_name,scate_url,scate_id)
             scate_list.append(scate_str)
 
         post=_page.findAll("li",{"class":"list-item"})
@@ -167,7 +170,8 @@ def GetProductList(cate_url,max_num_pages):
                 "SubCategories": [
                     [
                         "SubCateName",
-                        "SubCateURL"
+                        "SubCateURL",
+                        "SubCateID"
                     ]
                 ]
             }

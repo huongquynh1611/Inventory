@@ -65,13 +65,6 @@ class ShoppeeProductDetail:
         self.ProductInfos = productinfos
         self.ImgLinks = imglinks
 
-
-
-
-
-
-
-
 product_url = "https://shopee.vn/-NH%E1%BA%ACP-WASTWA1-GI%E1%BA%A2M-10K-%C4%90%C6%A0N-B%E1%BA%A4T-K%C3%8C-SI%C3%8AU-HOT-Qu%E1%BA%A7n-legging-%C4%91%C3%B9i-si%C3%AAu-hot-i.65519999.2016528890"
 def GetProductDetail(product_url):     
     driver = webdriver.Chrome(executable_path = "C:\\Users\\tlhqu\\Downloads\\chromedriver_win32\\chromedriver.exe", chrome_options=chrome_options)   
