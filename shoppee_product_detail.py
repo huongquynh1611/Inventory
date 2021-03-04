@@ -50,12 +50,20 @@ class Store:
         self.Time = time
         self.Info = info
 
-
+class ProductInfo:
+    def __init__(self,infoName,infoValue):
+        self.InfoName = infoName
+        self.InfoValue = infoValue
+class Img:
+     def __init__(self,imgLink):
+        self.ImgLink = imgLink
 class ShoppeeProductDetail:
-    def __init__(self, porperties,products,stores):
+    def __init__(self, porperties,products,stores,productinfos,imglinks):
         self.Porperties = porperties
         self.Products = products
         self.Stores = stores
+        self.ProductInfos = productinfos
+        self.ImgLinks = imglinks
 
 
 
@@ -64,7 +72,7 @@ class ShoppeeProductDetail:
 
 
 
-product_url = "https://shopee.vn/-M%C3%A3-MKBC303-gi%E1%BA%A3m-10-%C4%91%C6%A1n-500K-%F0%9F%8D%BC-DATE-2022-S%E1%BB%AEA-NAN-NGA-%C4%90%E1%BB%A6-S%E1%BB%90-1-2-3-4-800G-i.19601749.5004623388"
+product_url = "https://shopee.vn/-NH%E1%BA%ACP-WASTWA1-GI%E1%BA%A2M-10K-%C4%90%C6%A0N-B%E1%BA%A4T-K%C3%8C-SI%C3%8AU-HOT-Qu%E1%BA%A7n-legging-%C4%91%C3%B9i-si%C3%AAu-hot-i.65519999.2016528890"
 def GetProductDetail(product_url):     
     driver = webdriver.Chrome(executable_path = "C:\\Users\\tlhqu\\Downloads\\chromedriver_win32\\chromedriver.exe", chrome_options=chrome_options)   
     print(" >> ",product_url)
@@ -133,17 +141,26 @@ def GetProductDetail(product_url):
     store_list.append(store)
   
     # thông tin sản phẩm
-    product_inf = _page.findAll("div",{"class":"_3Wm5aN"})
-    for index in product_inf:
-        print(index)
+    info_list = []
+    product_inf = _page.findAll("div",{"class":"UjOlxf"})
+    info = product_inf[0].findAll("div",{"class":"_2gVYdB"})
+    for i in info:
+        name_info = i.label.text
+        value_info = i.a
+        value_info = i.a.text if value_info is not None  else i.div.text
 
+        productinfo = ProductInfo(name_info,value_info)
+        info_list.append(productinfo)
     # hình ảnh 
+    img_list = []
+    product_img = _page.findAll("div",{"class":"_2wBoeW V1Fpl5"})
+    for img in product_img:
+        img_link = (img["style"].split('"')[1])
+        link = Img(img_link)
+        img_list.append(link)
 
 
-
-
-
-    data = ShoppeeProductDetail(porperty_list,product_list,store_list)
+    data = ShoppeeProductDetail(porperty_list,product_list,store_list,info_list,img_list)
     query = [
         {
             "Porperties": [
@@ -176,8 +193,22 @@ def GetProductDetail(product_url):
                 "Info"
                 ]
             ]
+        },
+        {
+            "ProductInfos":[
+                [
+               "InfoName",
+               "InfoValue"
+                ]
+            ]
+        },
+        {
+            "ImgLinks":[
+                [
+               "ImgLink" 
+                ]
+            ]
         }
-       
     ]
     std_info = dictfier.dictfy(data, query)
 
