@@ -50,9 +50,9 @@ class DataProductList:
     def __init__(self, products, subcategories):
         self.Products = products
         self.SubCategories = subcategories
-def GetProductList(max_num_pages):
+def GetProductList(max_num_pages,url):
     list_product = []   
-    url = "https://vi.aliexpress.com/af/category/200003455.html?trafficChannel=af&catName=parkas&CatId=200003455&ltype=affiliate&SortType=default&page=" 
+    url =  url
     for ele in range(1,max_num_pages+1):              
         driver = webdriver.Chrome(executable_path = "C:\\Users\\tlhqu\\Downloads\\chromedriver_win32\\chromedriver.exe", chrome_options=chrome_options)   
         print(" >> ",url + str(ele) + "&isrefine=y" )
@@ -159,8 +159,8 @@ def GetProductList(max_num_pages):
         print(completeName)
 
 
-
-GetProductList(max_num_pages=2)               
+url = "https://vi.aliexpress.com/af/category/200003455.html?trafficChannel=af&catName=parkas&CatId=200003455&ltype=affiliate&SortType=default&page="
+GetProductList(max_num_pages=2,url=url)               
            
 
 
