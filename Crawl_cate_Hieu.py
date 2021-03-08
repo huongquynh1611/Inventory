@@ -34,7 +34,7 @@ try:
     # print("Page is ready!")
 except TimeoutException:
     print("Loading took too much")
-scrolls = 3
+scrolls = 1
 while True:
     scrolls -= 1
     time.sleep(1)
@@ -91,7 +91,7 @@ cate_id_field = "CateID"
 list_cate_str = []
 for cate in categories_list:
     url = cate.a["href"]
-    cate_name = url.split("/")[-1].replace('.html', '')
+    cate_name = cate.a.text
     cate_id = url.split("/")[-2]
     # cate_str = "{\"" + cate_name_field + "\":\"" + cate_name + \
     #     "\",\"" + cate_id_field + "\":\"" + cate_id + "\"}"
