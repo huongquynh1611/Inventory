@@ -1,2 +1,2 @@
-# Gosei_Inventory
+# Inventory
 Crawling Aliexpress
